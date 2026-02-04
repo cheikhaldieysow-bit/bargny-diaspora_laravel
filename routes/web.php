@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Auth\GoogleAuthController;
+use App\Http\Controllers\Auth\AuthController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,5 +17,13 @@ use App\Http\Controllers\Auth\GoogleAuthController;
 Route::get('/', function () {
     return view('welcome');
 });
-Route::get('/auth/google/redirect', [GoogleAuthController::class, 'redirect']);
-Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback']);
+Route::prefix('auth')->controller(AuthController::class)->group(function () {
+
+    // Google
+    Route::get('google/redirect', 'googleRedirect');
+    Route::get('google/callback', 'googleCallback');
+
+    // Auth classique (Les autres)
+    // Route::post('login', 'login');
+    // Route::post('register', 'register');
+});
