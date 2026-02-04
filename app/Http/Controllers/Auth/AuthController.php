@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Services\Auth\GoogleAuthService;
+use App\Services\Auth\RegisterMailService;
 use Illuminate\Http\Request;
 use Laravel\Socialite\Contracts\Factory as Socialite;
 
@@ -52,6 +53,23 @@ class AuthController extends Controller
      * (gérée par tes camarades)
      * =========================
      */
-    // public function register(Request $request) {}
+
+     protected RegisterMailService $registerMailService;
+
+    public function __construct(RegisterMailService $registerMailService)
+    {
+        $this->registerMailService = $registerMailService;
+    }
+    public function register(Request $request) {
+ $user = $this->registerMailService->register($request);
+
+        return response()->json([
+            'message' => 'Inscription réussie',
+            'user' => $user,
+           // 'token' => $user->createToken('auth_token')->plainTextToken,
+        ], 201);
+    }
+
+    
     // public function login(Request $request) {}
 }
