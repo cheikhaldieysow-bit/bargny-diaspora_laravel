@@ -9,17 +9,16 @@ use App\Http\Controllers\Auth\AuthController;
 |--------------------------------------------------------------------------
 | API Routes
 |--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "api" middleware group. Make something great!
-|
 */
 
+// 🔓 Auth Google (PUBLIC)
+Route::get('/auth/google/redirect', [AuthController::class, 'redirect']);
+Route::get('/auth/google/callback', [AuthController::class, 'callback']);
+
+
+// 🔐 Routes protégées par Sanctum
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
 Route::post('/register', [AuthController::class, 'register']);
-
-
