@@ -15,6 +15,28 @@ class AuthController extends Controller
      * =========================
      */
 
+      public function redirect()
+
+        {
+        return Socialite::driver('google')->redirect();
+    }
+
+    public function callback(RegisterGoogleService $registerGoogleService): JsonResponse
+    {
+        $googleUser = Socialite::driver('google')->stateless()->user();
+
+        $user = $registerGoogleService->registerOrLogin($googleUser);
+
+        // Créer token Sanctum
+        $token = $user->createToken('google-auth')->plainTextToken;
+
+        return response()->json([
+            'message' => 'Connexion Google réussie',
+            'token' => $token,
+            'user' => $user,
+        ]);
+    }
+
     // 🔁 REDIRECT GOOGLE
     public function googleRedirect(Socialite $socialite)
     {
@@ -24,7 +46,7 @@ class AuthController extends Controller
     // 🔁 CALLBACK GOOGLE
     public function googleCallback(
         Socialite $socialite,
-        GoogleAuthService $googleAuthService
+        RegisterGoogleService $registerGoogleService
     ) {
         $googleUser = $socialite->driver('google')->stateless()->user();
 
@@ -34,7 +56,7 @@ class AuthController extends Controller
             ], 422);
         }
 
-        $result = $googleAuthService->loginOrRegisterWithGoogle([
+        $result = $registerGoogleService->loginOrRegisterWithGoogle([
             'name' => $googleUser->getName()
                 ?? $googleUser->getNickname()
                 ?? 'Utilisateur',
