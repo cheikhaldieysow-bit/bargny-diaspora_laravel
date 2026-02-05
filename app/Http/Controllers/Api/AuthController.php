@@ -1,41 +1,40 @@
 <?php
+
 namespace App\Http\Controllers\Api;
+
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
+use App\Services\AuthService;
 
 class AuthController extends Controller
 {
-    // REGISTER (email ou phone)
+    protected $authService;
 
+    public function __construct(AuthService $authService)
+    {
+        $this->authService = $authService;
+    }
 
-    // LOGIN (email ou phone)
     public function login(Request $request)
     {
         $request->validate([
-            'login' => 'required',
-            'password' => 'required',
+            'login' => 'required|string',
+            'password' => 'required|string',
         ]);
 
-        $user = User::where('email', $request->login)
-            ->orWhere('phone', $request->login)
-            ->first();
+        $result = $this->authService->login($request->login, $request->password);
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            throw ValidationException::withMessages([
-                'login' => 'Identifiants incorrects',
-            ]);
+        if (!$result) {
+            return response()->json([
+                'message' => 'Identifiants invalides'
+            ], 401);
         }
 
-        $token = $user->createToken('api-token')->plainTextToken;
-
         return response()->json([
-            'user' => $user,
-            'token' => $token,
+            'message' => 'Connexion réussie',
+            'access_token' => $result['token'],
+            'token_type' => 'Bearer',
+            'user' => $result['user']
         ]);
-
-
     }
 }
