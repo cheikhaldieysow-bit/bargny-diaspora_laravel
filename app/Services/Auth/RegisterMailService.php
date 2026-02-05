@@ -16,7 +16,12 @@ class RegisterMailService
             'email' => 'required|email|unique:users,email',
             'phone' => 'required|string|unique:users,phone',
             'password' => 'required|string|min:8|confirmed',
-        ]);
+        ],
+        [
+                'email.unique' => 'Cet email est déjà utilisé',
+                'phone.unique' => 'Ce numéro de téléphone est déjà utilisé',
+        ]
+        );
 
         $role = Role::where('name', 'Owner')->firstOrFail();
 
