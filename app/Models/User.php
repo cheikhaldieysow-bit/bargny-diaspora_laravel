@@ -1,5 +1,13 @@
 <?php
 
+//use Laravel\Sanctum\HasApiTokens;
+
+//class User extends Authenticatable
+//{
+ //   use HasApiTokens, HasFactory, Notifiable;
+//}
+
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
