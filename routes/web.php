@@ -22,6 +22,7 @@ Route::prefix('auth')->controller(AuthController::class)->group(function () {
     // Google
     Route::get('google/redirect', 'googleRedirect');
     Route::get('google/callback', 'googleCallback');
+Route::post('/register', [AuthController::class, 'register']);
 
     // Auth classique (Les autres)
     // Route::post('login', 'login');
