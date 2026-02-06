@@ -16,13 +16,13 @@ class AuthController extends Controller
      * =========================
      */
 
-    // 🔁 REDIRECT GOOGLE
+    // REDIRECT GOOGLE
     public function googleRedirect(Socialite $socialite)
     {
         return $socialite->driver('google')->stateless()->redirect();
     }
 
-    // 🔁 CALLBACK GOOGLE
+    //CALLBACK GOOGLE
     public function googleCallback(
         Socialite $socialite,
         GoogleAuthService $googleAuthService
@@ -50,7 +50,7 @@ class AuthController extends Controller
     /**
      * =========================
      * AUTH CLASSIQUE
-     * (gérée par tes camarades)
+     * 
      * =========================
      */
 
