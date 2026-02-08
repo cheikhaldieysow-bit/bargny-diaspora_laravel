@@ -2,49 +2,88 @@
 
 namespace App\Services\Auth;
 
+use App\Exceptions\Auth\EmailAlreadyUsedException;
+use App\Exceptions\Auth\GoogleAccountNotFoundException;
+use App\Exceptions\Auth\GoogleEmailMissingException;
 use App\Models\User;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use Laravel\Socialite\Contracts\User as GoogleUser;
 
 class GoogleAuthService
 {
-    public function loginOrRegister(GoogleUser $googleUser): array
+    public function login(array $googleUser): array
     {
-        // 1) Chercher par google_id ou email
-        $user = User::where('google_id', $googleUser->getId())
-            ->orWhere('email', $googleUser->getEmail())
-            ->first();
-
-        // 2) Créer si absent
-        if (!$user) {
-            $user = User::create([
-                'name'      => $googleUser->getName() ?? $googleUser->getNickname() ?? 'Utilisateur',
-                'email'     => $googleUser->getEmail(),
-                'google_id' => $googleUser->getId(),
-                'provider'  => 'google',
-                'avatar'    => $googleUser->getAvatar(),
-                'password'  => Hash::make(Str::random(32)),
-            ]);
-        } else {
-            // 3) Mettre à jour google_id/provider/avatar si user existait par email
-            if (!$user->google_id) {
-                $user->update([
-                    'google_id' => $googleUser->getId(),
-                    'provider'  => 'google',
-                    'avatar'    => $googleUser->getAvatar(),
-                ]);
-            }
+        $email = $googleUser['email'] ?? null;
+        if (!$email) {
+            throw new GoogleEmailMissingException();
         }
 
-        // 4) Login + token Sanctum
+        $user = User::query()
+            ->where('google_id', $googleUser['sub'])
+            ->orWhere('email', $email)
+            ->first();
+
+        if (!$user) {
+            throw new GoogleAccountNotFoundException();
+        }
+
+        $this->syncGoogleData($user, $googleUser);
+
+        return $this->authenticate($user, 'google-login');
+    }
+
+    public function register(array $googleUser): array
+    {
+        $email = $googleUser['email'] ?? null;
+        if (!$email) {
+            throw new GoogleEmailMissingException();
+        }
+
+        $existing = User::query()->where('email', $email)->first();
+        if ($existing) {
+            throw new EmailAlreadyUsedException();
+        }
+
+        $user = User::create([
+            'name'      => $googleUser['name'] ?? 'Utilisateur',
+            'email'     => $email,
+            'google_id' => $googleUser['sub'],
+            'provider'  => 'google',
+            'avatar'    => $googleUser['picture'] ?? null,
+            'password'  => Hash::make(Str::random(32)),
+        ]);
+
+        return $this->authenticate($user, 'google-register');
+    }
+
+    private function authenticate(User $user, string $tokenName): array
+    {
         Auth::login($user);
-        $token = $user->createToken('google-auth')->plainTextToken;
 
         return [
             'user'  => $user,
-            'token' => $token,
+            'token' => $user->createToken($tokenName)->plainTextToken,
         ];
+    }
+
+    private function syncGoogleData(User $user, array $googleUser): void
+    {
+        // Sync si google_id absent ou si l'utilisateur existait déjà par email
+        $updates = [];
+
+        if (!$user->google_id) {
+            $updates['google_id'] = $googleUser['sub'] ?? null;
+            $updates['provider']  = 'google';
+        }
+
+        $avatar = $googleUser['picture'] ?? null;
+        if ($avatar && $user->avatar !== $avatar) {
+            $updates['avatar'] = $avatar;
+        }
+
+        if (!empty($updates)) {
+            $user->update($updates);
+        }
     }
 }

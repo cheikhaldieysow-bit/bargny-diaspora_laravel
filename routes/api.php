@@ -12,6 +12,13 @@ use App\Http\Controllers\Auth\AuthController;
 */
 
 
+Route::prefix('auth')->group(function () {
+    Route::post('/google/login', [GoogleAuthController::class, 'login']);
+    Route::post('/google/register', [GoogleAuthController::class, 'register']);
+
+    Route::post('/register', [AuthController::class, 'register']);
+});
+
 
 // 🔐 Routes protégées par Sanctum
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {

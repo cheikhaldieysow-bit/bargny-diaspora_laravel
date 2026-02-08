@@ -3,21 +3,30 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens; // ✅ AJOUT
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable; // ✅ AJOUT
+    use HasApiTokens, HasFactory, Notifiable;
+
+    public const PROVIDER_GOOGLE = 'google';
 
     protected $fillable = [
         'role_id',
         'name',
         'email',
         'address',
-        'password',
         'phone',
+        'password',
+
+        // Google
+        'google_id',
+        'provider',
+        'avatar',
     ];
 
     protected $hidden = [
@@ -25,41 +34,65 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
-    }
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+    ];
 
-    public function role()
+    /* --------------------
+     | Relations
+     -------------------- */
+
+    public function role(): BelongsTo
     {
         return $this->belongsTo(Role::class);
     }
 
-    public function projects()
+    public function projects(): HasMany
     {
         return $this->hasMany(Project::class);
     }
 
-    public function contributionPayments()
+    public function contributionPayments(): HasMany
     {
         return $this->hasMany(ContributionPayment::class);
     }
 
-    public function news()
+    public function news(): HasMany
     {
         return $this->hasMany(News::class);
     }
 
+    /* --------------------
+     | Scopes
+     -------------------- */
+
+    public function scopeAdmins($query)
+    {
+        return $query->whereHas('role', fn ($q) => $q->where('name', 'Admin'));
+    }
+
+    public function scopeByProvider($query, string $provider)
+    {
+        return $query->where('provider', $provider);
+    }
+
+    /* --------------------
+     | Helpers
+     -------------------- */
+
     public function hasRole(string $roleName): bool
     {
-        return $this->role && $this->role->name === $roleName;
+        return $this->role?->name === $roleName;
     }
 
     public function isAdmin(): bool
     {
         return $this->hasRole('Admin');
+    }
+
+    public function isGoogleAccount(): bool
+    {
+        return $this->provider === self::PROVIDER_GOOGLE && !empty($this->google_id);
     }
 }
