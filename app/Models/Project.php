@@ -119,4 +119,16 @@ class Project extends Model
             'status' => 'in_progress',
         ]);
     }
+<<<<<<< HEAD
+=======
+
+
+    /**
+     * Un projet peut être supprimé uniquement s'il n'est pas financé.
+     */
+    public function canBeDeleted(): bool
+    {
+        return !$this->isFunded();
+    }
+>>>>>>> df3d086 (Delete a project)
 }
