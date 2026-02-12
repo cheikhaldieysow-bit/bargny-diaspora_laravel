@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Services\Auth\GoogleAuthService;
 use App\Services\Auth\RegisterMailService;
 use Illuminate\Http\Request;
+use App\Http\Requests\Auth\RegisterWithRequest;
+use Illuminate\Http\JsonResponse;
 use Laravel\Socialite\Contracts\Factory as Socialite;
 
 class AuthController extends Controller
@@ -82,14 +84,23 @@ class AuthController extends Controller
     {
         $this->registerMailService = $registerMailService;
     }
-    public function register(Request $request) {
- $user = $this->registerMailService->register($request);
+     public function register(RegisterWithRequest $request): JsonResponse
+    {
+        try {
+            $user = $this->registerMailService->register($request);
 
-        return response()->json([
-            'message' => 'Inscription réussie',
-            'user' => $user,
-           // 'token' => $user->createToken('auth_token')->plainTextToken,
-        ], 201);
+            return response()->json([
+                'message' => 'Inscription réussie',
+                'user' => $user,
+                //'token' => $user->createToken('auth_token')->plainTextToken,
+            ], 201);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Erreur lors de l’inscription',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     
