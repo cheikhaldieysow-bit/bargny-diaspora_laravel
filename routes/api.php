@@ -16,7 +16,8 @@ use App\Http\Controllers\UserController;
 */
 
 
-Route::get('/view-profile/{id}', [UserController::class, 'viewProfile'])->name('view-profile');
+Route::get('/view-profile/{id}', [UserController::class, 'viewProfile'])
+        ->name('view-profile');
 
 
 
