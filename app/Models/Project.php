@@ -9,6 +9,8 @@ class Project extends Model
 {
     use HasFactory;
 
+
+
     /**
      * The attributes that are mass assignable.
      *
@@ -119,4 +121,6 @@ class Project extends Model
             'status' => 'in_progress',
         ]);
     }
+
+
 }
