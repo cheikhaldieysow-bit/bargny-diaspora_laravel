@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 
 
 class UserController extends Controller
@@ -68,7 +69,7 @@ class UserController extends Controller
 
 
     //view-profile
-    public function viewProfile($id)
+    public function viewProfile(int $id): JsonResponse
     {
         $user = User::with('role')->findOrFail($id);
         return response()->json($user);
