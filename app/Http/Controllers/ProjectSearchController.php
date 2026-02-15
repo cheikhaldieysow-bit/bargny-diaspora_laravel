@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\ProjectEnterpriseSearchRequest;
+use App\Http\Requests\ProjectSearchRequest;
 use App\Http\Resources\ProjectResources;
 use App\Services\ProjectSearchServices;
 use Illuminate\Http\JsonResponse;
@@ -17,7 +17,7 @@ class ProjectSearchController extends Controller
         $this->searchService = $searchService;
     }
 
-    public function search(ProjectEnterpriseSearchRequest $request): JsonResponse
+    public function search(ProjectSearchRequest $request): JsonResponse
     {
         $user = $request->user();
 

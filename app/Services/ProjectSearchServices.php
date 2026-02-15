@@ -3,121 +3,127 @@
 namespace App\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Database\DatabaseManager;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 
-class ProjectSearchServices
+final class ProjectSearchServices
 {
-    protected DatabaseManager $db;
 
-    public function __construct(DatabaseManager $db)
-    {
-        $this->db = $db;
-    }
+    // TODO: Move these to config or Enum for production
+    // Config provides flexibility, Enum provides type safety
+    private const DEFAULT_PER_PAGE = 15;
+    private const DEFAULT_SORT = 'created_at';
+    private const DEFAULT_ORDER = 'desc';
+    private const ALLOWED_SORTS = ['created_at', 'updated_at', 'budget', 'duration', 'titre'];
 
-    /**
-     * @param callable $ownerRelationFactory
-     * @param array $filters
-     * @return array{paginator: LengthAwarePaginator, facets: array}
-     */
     public function search(callable $ownerRelationFactory, array $filters): array
     {
-        $perPage = $filters['per_page'] ?? 15;
-        $sort = $filters['sort'] ?? 'created_at';
-        $order = $filters['order'] ?? 'desc';
-
         $query = $ownerRelationFactory()->withCount('documents');
 
-        if (!empty($filters['q'])) {
-            $q = trim($filters['q']);
-
-            // Use LIKE search (FULLTEXT index not yet created)
-            // To enable full-text: ALTER TABLE projects ADD FULLTEXT INDEX ft_search (titre, description, problem);
-            $query->where(function ($qb) use ($q) {
-                $qb->where('titre', 'like', "%{$q}%")
-                   ->orWhere('description', 'like', "%{$q}%")
-                   ->orWhere('problem', 'like', "%{$q}%");
-            });
-        }
-
-        if (!empty($filters['status'])) {
-            $query->whereIn('status', (array) $filters['status']);
-        }
-
-        if (isset($filters['funded'])) {
-            $filters['funded'] ? $query->whereNotNull('funded_at') : $query->whereNull('funded_at');
-        }
-
-        if (isset($filters['min_budget'])) {
-            $query->where('budget', '>=', $filters['min_budget']);
-        }
-        if (isset($filters['max_budget'])) {
-            $query->where('budget', '<=', $filters['max_budget']);
-        }
-
-        if (isset($filters['duration_min'])) {
-            $query->where('duration', '>=', $filters['duration_min']);
-        }
-        if (isset($filters['duration_max'])) {
-            $query->where('duration', '<=', $filters['duration_max']);
-        }
-
-        if (!empty($filters['created_from'])) {
-            $query->whereDate('created_at', '>=', $filters['created_from']);
-        }
-        if (!empty($filters['created_to'])) {
-            $query->whereDate('created_at', '<=', $filters['created_to']);
-        }
-
-        $allowedSorts = ['created_at', 'updated_at', 'budget', 'duration', 'titre'];
-        if (! in_array($sort, $allowedSorts, true)) {
-            $sort = 'created_at';
-        }
-
-        $baseQuery = clone $query;
-        $facets = [];
-
-        if (!empty($filters['facets'])) {
-            $statusCounts = (clone $baseQuery)
-                ->select('status', DB::raw('count(*) as total'))
-                ->groupBy('status')
-                ->pluck('total', 'status')
-                ->toArray();
-
-            $fundedCounts = (clone $baseQuery)
-                ->select(DB::raw('CASE WHEN funded_at IS NULL THEN 0 ELSE 1 END as funded_flag'), DB::raw('count(*) as total'))
-                ->groupBy('funded_flag')
-                ->get()
-                ->mapWithKeys(function ($row) {
-                    return [$row->funded_flag ? 'funded' : 'unfunded' => (int) $row->total];
-                })->toArray();
-
-            $facets = [
-                'status' => $statusCounts,
-                'funded' => $fundedCounts,
-            ];
-        }
-
-        $paginator = $query->orderBy($sort, $order)
-            ->paginate($perPage)
-            ->appends(request()->query());
+        $this->applyFilters($query, $filters);
 
         return [
-            'paginator' => $paginator,
-            'facets' => $facets,
+            'paginator' => $this->paginate($query, $filters),
+            'facets' => $this->computeFacets($query, $filters),
         ];
     }
 
-    protected function toBooleanMode(string $q): string
+    private function applyFilters(Builder $query, array $filters): void
     {
-        $tokens = preg_split('/\s+/', $q);
-        $tokens = array_filter(array_map(function ($t) {
-            $t = trim($t);
-            $t = str_replace(['+', '-', '<', '>', '@', '(', ')', '~', '*', '"'], ' ', $t);
-            return $t;
-        }, $tokens));
-        $tokens = array_slice($tokens, 0, 10);
-        $tokens = array_map(fn($t) => $t . '*', $tokens);
-        return implode(' ', $tokens);
+        if ($search = $filters['q'] ?? null) {
+            $this->applySearch($query, $search);
+        }
+
+        if ($status = $filters['status'] ?? null) {
+            $query->whereIn('status', (array) $status);
+        }
+
+        if (isset($filters['funded'])) {
+            $filters['funded']
+                ? $query->whereNotNull('funded_at')
+                : $query->whereNull('funded_at');
+        }
+
+        $this->applyRange($query, 'budget', $filters['min_budget'] ?? null, $filters['max_budget'] ?? null);
+        $this->applyRange($query, 'duration', $filters['duration_min'] ?? null, $filters['duration_max'] ?? null);
+        $this->applyDateRange($query, $filters['created_from'] ?? null, $filters['created_to'] ?? null);
+    }
+
+    private function applySearch(Builder $query, string $search): void
+    {
+        $term = '%' . trim($search) . '%';
+
+        $query->where(fn($q) => $q
+            ->where('titre', 'like', $term)
+            ->orWhere('description', 'like', $term)
+            ->orWhere('problem', 'like', $term)
+        );
+    }
+
+    private function applyRange(Builder $query, string $column, ?float $min, ?float $max): void
+    {
+        if ($min !== null) {
+            $query->where($column, '>=', $min);
+        }
+
+        if ($max !== null) {
+            $query->where($column, '<=', $max);
+        }
+    }
+
+    private function applyDateRange(Builder $query, ?string $from, ?string $to): void
+    {
+        if ($from) {
+            $query->whereDate('created_at', '>=', $from);
+        }
+
+        if ($to) {
+            $query->whereDate('created_at', '<=', $to);
+        }
+    }
+
+    private function computeFacets(Builder $query, array $filters): array
+    {
+        if (empty($filters['facets'])) {
+            return [];
+        }
+
+        $baseQuery = clone $query;
+
+        return [
+            'status' => $this->statusFacets($baseQuery),
+            'funded' => $this->fundedFacets($baseQuery),
+        ];
+    }
+
+    private function statusFacets(Builder $query): array
+    {
+        return $query
+            ->select('status', DB::raw('count(*) as total'))
+            ->groupBy('status')
+            ->pluck('total', 'status')
+            ->toArray();
+    }
+
+    private function fundedFacets(Builder $query): array
+    {
+        return $query
+            ->select(DB::raw('funded_at IS NOT NULL as is_funded, count(*) as total'))
+            ->groupBy('is_funded')
+            ->get()
+            ->mapWithKeys(fn($row) => [$row->is_funded ? 'funded' : 'unfunded' => (int) $row->total])
+            ->toArray();
+    }
+
+    private function paginate(Builder $query, array $filters): LengthAwarePaginator
+    {
+        $sort = in_array($filters['sort'] ?? null, self::ALLOWED_SORTS, true)
+            ? $filters['sort']
+            : self::DEFAULT_SORT;
+
+        return $query
+            ->orderBy($sort, $filters['order'] ?? self::DEFAULT_ORDER)
+            ->paginate($filters['per_page'] ?? self::DEFAULT_PER_PAGE)
+            ->appends(request()->query());
     }
 }

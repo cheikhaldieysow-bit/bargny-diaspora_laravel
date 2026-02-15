@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class ProjectEnterpriseSearchRequest extends FormRequest
+class ProjectSearchRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -14,7 +14,7 @@ class ProjectEnterpriseSearchRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'q' => 'nullable|string|max:1000',
+            'q' => 'nullable|string|max:100',
             'status' => 'nullable|array',
             'status.*' => 'string|in:draft,pending,approved,rejected,in_progress,completed',
             'funded' => 'nullable|boolean',
@@ -26,7 +26,7 @@ class ProjectEnterpriseSearchRequest extends FormRequest
             'created_to' => 'nullable|date',
             'sort' => 'nullable|string|in:created_at,updated_at,budget,duration,titre',
             'order' => 'nullable|string|in:asc,desc',
-            'per_page' => 'nullable|integer|min:1|max:200',
+            'per_page' => 'nullable|integer|min:1|max:24',
             'facets' => 'nullable|boolean',
         ];
     }
