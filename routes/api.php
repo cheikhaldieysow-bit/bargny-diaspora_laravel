@@ -1,8 +1,9 @@
 <?php
 
-use Illuminate\Http\Request;
+
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProjectSearchController;
+use App\Http\Controllers\ProjectSubmitController;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,8 +16,11 @@ use App\Http\Controllers\ProjectSearchController;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+
+
+Route::middleware(['auth'])->group(function () {
+    Route::post('/projects/{project}/submit', [ProjectSubmitController::class, 'submit'])
+         ->name('projects.submit');
 });
 
 Route::middleware('auth:sanctum')->get('projects/search', [ProjectSearchController::class, 'search'])
