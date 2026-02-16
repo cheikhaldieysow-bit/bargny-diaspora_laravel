@@ -21,6 +21,8 @@ use App\Http\Controllers\ProjectSubmitController;
 Route::middleware(['auth'])->group(function () {
     Route::post('/projects/{project}/submit', [ProjectSubmitController::class, 'submit'])
          ->name('projects.submit');
+    Route::put('/projects/{projectId}', [ProjectSubmitController::class, 'update'])
+         ->name('projects.update');
 });
 
 Route::middleware('auth:sanctum')->get('projects/search', [ProjectSearchController::class, 'search'])
