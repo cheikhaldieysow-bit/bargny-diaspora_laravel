@@ -1,7 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\GoogleAuthController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -17,5 +19,9 @@ use App\Http\Controllers\Auth\GoogleAuthController;
 Route::get('/', function () {
     return view('welcome');
 });
-Route::get('/auth/google/redirect', [GoogleAuthController::class, 'redirect']);
-Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback']);
+//get route de tester pour google auth
+
+Route::get('/login/google', function () {
+    return view('auth.google-test');
+});
+

@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -10,26 +12,24 @@ use Laravel\Sanctum\HasApiTokens;
 class User extends Authenticatable
 {
     use HasFactory, Notifiable, HasApiTokens;
+    use HasApiTokens, HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
+    public const PROVIDER_GOOGLE = 'google';
+
     protected $fillable = [
         'role_id',
         'name',
         'email',
         'address',
-        'password',
         'phone',
+        'password',
+
+        // Google
+        'google_id',
+        'provider',
+        'avatar',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
@@ -50,51 +50,65 @@ class User extends Authenticatable
         ];
     }
 
-    /**
-     * Get the role that owns the user.
-     */
-    public function role()
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+    ];
+
+    /* --------------------
+     | Relations
+     -------------------- */
+
+    public function role(): BelongsTo
     {
         return $this->belongsTo(Role::class);
     }
 
-    /**
-     * Get the projects for the user.
-     */
-    public function projects()
+    public function projects(): HasMany
     {
         return $this->hasMany(Project::class);
     }
 
-    /**
-     * Get the contribution payments for the user.
-     */
-    public function contributionPayments()
+    public function contributionPayments(): HasMany
     {
         return $this->hasMany(ContributionPayment::class);
     }
 
-    /**
-     * Get the news created by the user.
-     */
-    public function news()
+    public function news(): HasMany
     {
         return $this->hasMany(News::class);
     }
 
-    /**
-     * Check if user has a specific role.
-     */
-    public function hasRole(string $roleName): bool
+    /* --------------------
+     | Scopes
+     -------------------- */
+
+    public function scopeAdmins($query)
     {
-        return $this->role && $this->role->name === $roleName;
+        return $query->whereHas('role', fn ($q) => $q->where('name', 'Admin'));
     }
 
-    /**
-     * Check if user is an admin.
-     */
+    public function scopeByProvider($query, string $provider)
+    {
+        return $query->where('provider', $provider);
+    }
+
+    /* --------------------
+     | Helpers
+     -------------------- */
+
+    public function hasRole(string $roleName): bool
+    {
+        return $this->role?->name === $roleName;
+    }
+
     public function isAdmin(): bool
     {
         return $this->hasRole('Admin');
+    }
+
+    public function isGoogleAccount(): bool
+    {
+        return $this->provider === self::PROVIDER_GOOGLE && !empty($this->google_id);
     }
 }
