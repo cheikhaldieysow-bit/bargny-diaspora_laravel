@@ -4,6 +4,7 @@ use App\Http\Controllers\OwnerProjectController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ProjectSearchController;
 
 /*
 |--------------------------------------------------------------------------
@@ -24,6 +25,9 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+Route::middleware('auth:sanctum')->get('projects/search', [ProjectSearchController::class, 'search'])
+    ->name('api.projects.search');
+
 // 2. VOS ROUTES OWNER (Doivent être À L'EXTÉRIEUR de la fonction ci-dessus)
 Route::middleware('auth:sanctum')->group(function () {
 
@@ -38,3 +42,4 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
 });
+
