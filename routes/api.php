@@ -11,9 +11,13 @@ use App\Http\Controllers\Auth\AuthController;
 |--------------------------------------------------------------------------
 */
 
-// 🔓 Auth Google (PUBLIC)
-Route::get('/auth/google/redirect', [AuthController::class, 'redirect']);
-Route::get('/auth/google/callback', [AuthController::class, 'callback']);
+
+Route::prefix('auth')->group(function () {
+    Route::post('/google/login', [GoogleAuthController::class, 'login']);
+    Route::post('/google/register', [GoogleAuthController::class, 'register']);
+
+    Route::post('/register', [AuthController::class, 'register']);
+});
 
 
 // 🔐 Routes protégées par Sanctum
