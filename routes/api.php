@@ -9,8 +9,6 @@ use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\ProjectSearchController;
 use App\Http\Controllers\ProjectSubmitController;
-
-use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\PasswordResetController;
 
 /*
