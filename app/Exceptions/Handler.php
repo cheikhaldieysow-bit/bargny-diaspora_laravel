@@ -4,14 +4,14 @@ namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Throwable;
+use App\Exceptions\Auth\EmailAlreadyUsedException;
+use App\Exceptions\Auth\PhoneAlreadyUsedException;
+use App\Exceptions\Auth\RoleNotFoundException;
+use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpFoundation\Response;
 
 class Handler extends ExceptionHandler
 {
-    /**
-     * The list of the inputs that are never flashed to the session on validation exceptions.
-     *
-     * @var array<int, string>
-     */
     protected $dontFlash = [
         'current_password',
         'password',
@@ -23,8 +23,31 @@ class Handler extends ExceptionHandler
      */
     public function register(): void
     {
-        $this->reportable(function (Throwable $e) {
-            //
+        // Exceptions personnalisées
+        $this->renderable(function (EmailAlreadyUsedException $e, $request) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], Response::HTTP_CONFLICT); // 409
+        });
+
+        $this->renderable(function (PhoneAlreadyUsedException $e, $request) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], Response::HTTP_CONFLICT); // 409
+        });
+
+        $this->renderable(function (RoleNotFoundException $e, $request) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], Response::HTTP_NOT_FOUND); // 404
+        });
+
+        // Validation standard
+        $this->renderable(function (ValidationException $e, $request) {
+            return response()->json([
+                'message' => 'Erreur de validation',
+                'errors'  => $e->errors(),
+            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
         });
     }
 }

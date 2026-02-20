@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Services\Auth\RegisterMailService;
+use App\Http\Requests\Auth\RegisterWithRequest;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class AuthController extends Controller
 {
@@ -16,13 +16,15 @@ class AuthController extends Controller
     /**
      * POST /api/auth/register
      */
-    public function register(Request $request): JsonResponse
+    public function register(RegisterWithRequest $request): JsonResponse
     {
-        $user = $this->registerMailService->register($request);
+        $userDTO = $this->registerMailService->register(
+            $request->validated()
+        );
 
         return response()->json([
             'message' => 'Inscription réussie',
-            'user'    => $user,
+            'data'    => $userDTO,
         ], 201);
     }
 
