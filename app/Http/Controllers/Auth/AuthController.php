@@ -26,5 +26,17 @@ class AuthController extends Controller
         ], 201);
     }
 
-    // login() / logout() pourront être ajoutés plus tard
+    /**
+     * POST /api/auth/logout
+     * Déconnexion de l'utilisateur (révoque le token actuel)
+     */
+    public function logout(Request $request): JsonResponse
+    {
+        // Supprime le token actuel utilisé pour l'authentification
+        $request->user()->currentAccessToken()->delete();
+
+        return response()->json([
+            'message' => 'Déconnexion réussie',
+        ], 200);
+    }
 }

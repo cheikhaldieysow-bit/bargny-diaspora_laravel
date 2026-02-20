@@ -35,6 +35,9 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+// Route de déconnexion (nécessite authentification)
+Route::middleware('auth:sanctum')->post('/auth/logout', [AuthController::class, 'logout']);
+
 Route::post('/register', [AuthController::class, 'register']);
 Route::middleware('auth:sanctum')->get('projects/search', [ProjectSearchController::class, 'search'])->name('api.projects.search');
 
