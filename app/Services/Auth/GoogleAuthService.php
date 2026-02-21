@@ -86,4 +86,36 @@ class GoogleAuthService
             $user->update($updates);
         }
     }
+
+    public function handleGoogleAuth(array $googleUser): array
+{
+    $email = $googleUser['email'] ?? null;
+    if (!$email) {
+        throw new GoogleEmailMissingException();
+    }
+
+    // 1. Chercher l'utilisateur par google_id ou par email
+    $user = User::where('google_id', $googleUser['sub'])
+                ->orWhere('email', $email)
+                ->first();
+
+    if (!$user) {
+        // 2. Si l'utilisateur n'existe pas, on le crée
+        $user = User::create([
+            'name'      => $googleUser['name'] ?? 'Utilisateur',
+            'email'     => $email,
+            'google_id' => $googleUser['sub'],
+            'provider'  => 'google',
+            'avatar'    => $googleUser['picture'] ?? null,
+            'password'  => Hash::make(Str::random(32)),
+        ]);
+        $context = 'google-register';
+    } else {
+        // 3. Si il existe, on met à jour ses infos (avatar, google_id si manquant)
+        $this->syncGoogleData($user, $googleUser);
+        $context = 'google-login';
+    }
+
+    return $this->authenticate($user, $context);
+}
 }
