@@ -3,11 +3,11 @@
 namespace App\Exceptions\Auth;
 
 use Exception;
-
-class RoleNotFoundException extends Exception
+// ✅ CORRECT
+class RoleNotFoundException extends \Exception
 {
-     public function __construct(string $message = 'Le rôle Owner est introuvable.')
+    public function __construct(string $message = "Rôle introuvable", int $code = 0)
     {
-        parent::__construct(500, $message);
+        parent::__construct($message, $code);
     }
 }
