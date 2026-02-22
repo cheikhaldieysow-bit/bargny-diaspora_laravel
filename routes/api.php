@@ -54,11 +54,11 @@ Route::get('/test', function () {
 
 Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
-    Route::post('/google/login', [GoogleAuthController::class, 'login']);
-    Route::post('/google/register', [GoogleAuthController::class, 'register']);
-    Route::post('/logout', [AuthController::class, 'logout']);
-     
-   
+//    Route::post('/google/login', [GoogleAuthController::class, 'login']);
+  //  Route::post('/google/register', [GoogleAuthController::class, 'register']);
+Route::post('/google/callback', [GoogleAuthController::class, 'handleCallback']);
+
+    Route::post('/register', [AuthController::class, 'register']);
     Route::post('/projects/{project}/submit', [ProjectSubmitController::class, 'submit'])->name('projects.submit');
 
     Route::put('/projects/{projectId}', [ProjectSubmitController::class, 'update'])->name('projects.update');
