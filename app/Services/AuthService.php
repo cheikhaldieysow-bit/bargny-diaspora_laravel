@@ -30,4 +30,10 @@ class AuthService
             'token' => $token
         ];
     }
+    //  Nouvelle méthode logout
+      public function logout(User $user): void
+      {
+          // Supprime uniquement le token actuel
+          $user->currentAccessToken()->delete();
+      }
 }
