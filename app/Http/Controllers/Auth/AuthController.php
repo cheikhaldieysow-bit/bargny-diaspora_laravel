@@ -55,4 +55,13 @@ class AuthController extends Controller
             'user' => $result['user']
         ]);
     }
+    // logout()
+    public function logout(Request $request): JsonResponse
+    {
+        $this->authService->logout($request->user());
+    
+        return response()->json([
+            'message' => 'Déconnexion réussie'
+        ]);
+    }
 }
