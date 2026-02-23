@@ -12,6 +12,14 @@ use Symfony\Component\HttpFoundation\Response;
 
 class Handler extends ExceptionHandler
 {
+
+class Handler extends ExceptionHandler
+{
+    /**
+     * The list of the inputs that are never flashed to the session on validation exceptions.
+     *
+     * @var array<int, string>
+     */
     protected $dontFlash = [
         'current_password',
         'password',
@@ -48,6 +56,8 @@ class Handler extends ExceptionHandler
                 'message' => 'Erreur de validation',
                 'errors'  => $e->errors(),
             ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
+        $this->reportable(function (Throwable $e) {
+            //
         });
     }
 }
