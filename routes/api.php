@@ -10,6 +10,7 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\ProjectSearchController;
 use App\Http\Controllers\ProjectSubmitController;
 use App\Http\Controllers\Api\PasswordResetController;
+use App\Http\Controllers\MembreController;
 
 /*
 |--------------------------------------------------------------------------
@@ -36,6 +37,22 @@ Route::middleware('auth:sanctum')->group(function () {
     // Profil utilisateur
     Route::put('/user/profile', [AuthController::class, 'updateProfile']);
     Route::post('/user/change-password', [AuthController::class, 'changePassword']);
+});
+
+/*
+|--------------------------------------------------------------------------
+| Route pour les membres (authentification spécifique)
+|--------------------------------------------------------------------------
+*/
+
+// Routes de connexion publiques
+Route::post('/membre/login', [MembreController::class, 'loginMembre']);
+
+// Routes protégées pour les membres
+Route::middleware(['auth:sanctum', 'membre'])->group(function () {
+    Route::post('/membre/logout', [MembreController::class, 'logoutMembre']);
+    Route::get('/membre/profil', [MembreController::class, 'user']);
+    Route::apiResource('membres', MembreController::class);
 });
 
 /*
