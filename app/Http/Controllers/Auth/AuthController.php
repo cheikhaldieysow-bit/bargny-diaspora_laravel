@@ -4,39 +4,64 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Services\Auth\RegisterMailService;
-use Illuminate\Http\JsonResponse;
+use App\Http\Requests\Auth\RegisterWithRequest;
+use App\Services\AuthService;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class AuthController extends Controller
 {
     public function __construct(
         private readonly RegisterMailService $registerMailService,
+        private readonly AuthService $authService
     ) {}
 
     /**
      * POST /api/auth/register
      */
-    public function register(Request $request): JsonResponse
+    public function register(RegisterWithRequest $request): JsonResponse
     {
-        $user = $this->registerMailService->register($request);
+        $userDTO = $this->registerMailService->register(
+            $request->validated()
+        );
 
         return response()->json([
             'message' => 'Inscription réussie',
-            'user'    => $user,
+            'data'    => $userDTO,
         ], 201);
     }
 
-    /**
-     * POST /api/auth/logout
-     * Déconnexion de l'utilisateur (révoque le token actuel)
-     */
-    public function logout(Request $request): JsonResponse
+    // login() / logout() pourront être ajoutés plus tard
+
+    public function login(Request $request)
     {
-        // Supprime le token actuel utilisé pour l'authentification
-        $request->user()->currentAccessToken()->delete();
+        $request->validate([
+            'login' => 'required|string',
+            'password' => 'required|string',
+        ]);
+
+        $result = $this->authService->login($request->login, $request->password);
+
+        if (!$result) {
+            return response()->json([
+                'message' => 'Identifiants invalides'
+            ], 401);
+        }
 
         return response()->json([
-            'message' => 'Déconnexion réussie',
-        ], 200);
+            'message' => 'Connexion réussie',
+            'access_token' => $result['token'],
+            'token_type' => 'Bearer',
+            'user' => $result['user']
+        ]);
+    }
+    // logout()
+    public function logout(Request $request): JsonResponse
+    {
+        $this->authService->logout($request->user());
+    
+        return response()->json([
+            'message' => 'Déconnexion réussie'
+        ]);
     }
 }
