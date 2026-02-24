@@ -62,13 +62,5 @@ class RegisterMailService
             created_at: $user->created_at?->toDateTimeString(),
             updated_at: $user->updated_at?->toDateTimeString()
         );
-class RegisterMailService
-{
-    /**
-     * Create a new class instance.
-     */
-    public function __construct()
-    {
-        //
     }
 }
