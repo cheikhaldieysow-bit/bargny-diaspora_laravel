@@ -13,7 +13,7 @@ class ProjectPolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -21,7 +21,7 @@ class ProjectPolicy
      */
     public function view(User $user, Project $project): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -29,7 +29,7 @@ class ProjectPolicy
      */
     public function create(User $user): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -37,15 +37,7 @@ class ProjectPolicy
      */
     public function update(User $user, Project $project): bool
     {
-        return false;
-    }
-
-    /**
-     * Determine whether the user can delete the model.
-     */
-    public function delete(User $user, Project $project): bool
-    {
-        return false;
+        return $project->user_id === $user->id;
     }
 
     /**
@@ -53,7 +45,7 @@ class ProjectPolicy
      */
     public function restore(User $user, Project $project): bool
     {
-        return false;
+        return $user->isAdmin();
     }
 
     /**
@@ -61,7 +53,7 @@ class ProjectPolicy
      */
     public function forceDelete(User $user, Project $project): bool
     {
-        return false;
+        return $user->isAdmin();
     }
 
     /**
@@ -70,5 +62,32 @@ class ProjectPolicy
     public function submit(User $user, Project $project): bool
     {
         return $project->user_id === $user->id && $project->status === 'draft';
+    }
+
+    /**
+     * Autorise la suppression d'un projet uniquement si :
+     * - l'utilisateur est le propriétaire du projet ou un administrateur ;
+     * - et que le projet n'a pas encore été financé.
+     */
+    public function delete(User $user, Project $project): Response
+    {
+        // Vérifie si l'utilisateur connecté est le propriétaire du projet
+        $isOwner = $project->user_id === $user->id;
+
+        // Vérifie si l'utilisateur connecté possède le rôle administrateur
+        $isAdmin = $user->isAdmin();
+
+        // Si l'utilisateur n'est ni propriétaire ni administrateur => accès refusé
+        if (! ($isOwner || $isAdmin)) {
+            return Response::deny("Vous n'avez pas le droit de supprimer un projet qui ne vous appartient pas. Pour le faire il faut être un administrateur.");
+        }
+
+        // Si le projet est déjà financé => suppression interdite
+        if (! $project->canBeDeleted()) {
+            return Response::deny('Impossible de supprimer un projet déjà financé.');
+        }
+
+        // Toutes les conditions sont respectées => suppression autorisée
+        return Response::allow();
     }
 }
