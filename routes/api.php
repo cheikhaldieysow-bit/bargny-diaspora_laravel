@@ -9,7 +9,6 @@ use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\ProjectSearchController;
 use App\Http\Controllers\ProjectSubmitController;
-use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\ProjectController;
 
 
@@ -60,9 +59,10 @@ Route::prefix('auth')->group(function () {
     Route::post('/google/register', [GoogleAuthController::class, 'register']);
 
     Route::post('/register', [AuthController::class, 'register']);
+    Route::middleware('auth:sanctum')->group(function () {
     Route::post('/projects/{project}/submit', [ProjectSubmitController::class, 'submit'])->name('projects.submit');
-
     Route::put('/projects/{projectId}', [ProjectSubmitController::class, 'update'])->name('projects.update');
+});
 });
 
 
