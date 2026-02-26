@@ -18,7 +18,11 @@ class OwnerProjectController extends Controller
         $user = $request->user();
 
         // 2. Vérifier si l'utilisateur a le rôle 'owner' (Optionnel mais recommandé selon votre demande)
+<<<<<<< HEAD
         if (! $user->hasRole('owner')) {
+=======
+        if (!$user->hasRole('Owner')) {
+>>>>>>> 53e2ad79f839a9bc31e524f2d70a72a6010d1276
             return response()->json(['message' => 'Accès non autorisé. Réservé aux owners.'], 403);
         }
 

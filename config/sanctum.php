@@ -9,6 +9,8 @@ return [
     | Stateful Domains
     |--------------------------------------------------------------------------
     |
+    | Domaines qui peuvent faire des requêtes "stateful" à l'API.
+    | Incluez votre domaine Next.js ici.
     | Requests from the following domains / hosts will receive stateful API
     | authentication cookies. Typically, these should include your local
     | and production domains which access your API via a frontend SPA.
@@ -17,6 +19,7 @@ return [
 
     'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', sprintf(
         '%s%s',
+        'localhost,localhost:3000,localhost:3001,127.0.0.1,127.0.0.1:8000,::1',
         'localhost,localhost:3000,127.0.0.1,127.0.0.1:8000,::1',
         Sanctum::currentApplicationUrlWithPort()
     ))),
@@ -40,6 +43,8 @@ return [
     | Expiration Minutes
     |--------------------------------------------------------------------------
     |
+    | Durée de validité des tokens en minutes.
+    | null = pas d'expiration
     | This value controls the number of minutes until an issued token will be
     | considered expired. This will override any values set in the token's
     | "expires_at" attribute, but first-party sessions are not affected.
@@ -77,6 +82,7 @@ return [
     'middleware' => [
         'authenticate_session' => Laravel\Sanctum\Http\Middleware\AuthenticateSession::class,
         'encrypt_cookies' => App\Http\Middleware\EncryptCookies::class,
+        'validate_csrf_token' => App\Http\Middleware\VerifyCsrfToken::class,
         'verify_csrf_token' => App\Http\Middleware\VerifyCsrfToken::class,
     ],
 
