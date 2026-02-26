@@ -26,12 +26,15 @@ public function update(UpdateProjectRequest $request, $projectId)
     $project = Project::findOrFail($projectId);
     $this->authorize('update', $project);
 
-    $project->update($request->validated());
+    $validatedData = $request->validated();
+
+    // Mise à jour du projet
+    $project->update($validatedData);
     $project->refresh();
 
     return response()->json([
         'message' => 'Le projet a été mis à jour avec succès !',
-        'project' => $project,
+        'project' => $project
     ], 200);
 }
 
