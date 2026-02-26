@@ -9,9 +9,9 @@ use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\ProjectSearchController;
 use App\Http\Controllers\ProjectSubmitController;
+use App\Http\Controllers\Auth\PasswordResetController;
+use App\Http\Controllers\ProjectController;
 
-use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\PasswordResetController;
 
 /*
 |--------------------------------------------------------------------------
@@ -60,9 +60,10 @@ Route::prefix('auth')->group(function () {
     Route::post('/google/register', [GoogleAuthController::class, 'register']);
 
     Route::post('/register', [AuthController::class, 'register']);
+    Route::middleware('auth:sanctum')->group(function () {
     Route::post('/projects/{project}/submit', [ProjectSubmitController::class, 'submit'])->name('projects.submit');
-
     Route::put('/projects/{projectId}', [ProjectSubmitController::class, 'update'])->name('projects.update');
+});
 });
 
 
@@ -90,3 +91,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 });
 
+// La route pour la suppression d'un projet s'il n'est pas financé
+Route::middleware('auth:sanctum')
+    ->delete('/projects/{project}', [ProjectController::class, 'destroy']);
+    
