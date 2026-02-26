@@ -24,8 +24,8 @@ class ProjectSubmitController extends Controller
 public function update(UpdateProjectRequest $request, $projectId)
 {
     $project = Project::findOrFail($projectId);
-    $this->authorize('update', $project); // ✅ objet Project
-    
+    $this->authorize('update', $project);
+
     $project->update($request->validated());
     $project->refresh();
 
