@@ -10,8 +10,16 @@ use App\Exceptions\Auth\RoleNotFoundException;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
 
+
+
 class Handler extends ExceptionHandler
 {
+    /**
+     * The list of the inputs that are never flashed to the session on validation exceptions.
+     *
+     * @var array<int, string>
+     */
+
     protected $dontFlash = [
         'current_password',
         'password',
@@ -23,6 +31,7 @@ class Handler extends ExceptionHandler
      */
     public function register(): void
     {
+
         // Exceptions personnalisées
         $this->renderable(function (EmailAlreadyUsedException $e, $request) {
             return response()->json([
@@ -48,6 +57,11 @@ class Handler extends ExceptionHandler
                 'message' => 'Erreur de validation',
                 'errors'  => $e->errors(),
             ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
+        });
+
+        $this->reportable(function (Throwable $e) {
+            //
+
         });
     }
 }

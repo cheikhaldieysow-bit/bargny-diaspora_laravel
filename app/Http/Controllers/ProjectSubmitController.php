@@ -21,20 +21,19 @@ class ProjectSubmitController extends Controller
             'project' => $project,
         ], 200);
     }
+public function update(UpdateProjectRequest $request, $projectId)
+{
+    $project = Project::findOrFail($projectId);
+    $this->authorize('update', $project); // ✅ objet Project
+    
+    $project->update($request->validated());
+    $project->refresh();
 
-    public function update(UpdateProjectRequest $request, $projectId)
-    {
-        $this->authorize('update', $projectId);
-        $project = Project::find($projectId);
-
-        $project->update($request->validated());
-        $project->refresh();
-
-        return response()->json([
-            'message' => 'Le projet a été mis à jour avec succès !',
-            'project' => $project,
-        ], 200);
-    }
+    return response()->json([
+        'message' => 'Le projet a été mis à jour avec succès !',
+        'project' => $project,
+    ], 200);
+}
 
 
 }

@@ -123,4 +123,11 @@ class Project extends Model
     }
 
 
+    /**
+     * Un projet peut être supprimé uniquement s'il n'est pas financé.
+     */
+    public function canBeDeleted(): bool
+    {
+        return !$this->isFunded();
+    }
 }
