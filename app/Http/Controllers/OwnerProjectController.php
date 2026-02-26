@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\ProjectResource;
 use App\Models\Project;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class OwnerProjectController extends Controller
 {
@@ -18,7 +18,7 @@ class OwnerProjectController extends Controller
         $user = $request->user();
 
         // 2. Vérifier si l'utilisateur a le rôle 'owner' (Optionnel mais recommandé selon votre demande)
-        if (!$user->hasRole('owner')) {
+        if (! $user->hasRole('owner')) {
             return response()->json(['message' => 'Accès non autorisé. Réservé aux owners.'], 403);
         }
 
