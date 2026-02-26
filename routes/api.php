@@ -71,8 +71,17 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', function (Request $request) {
             return $request->user();
         });
-        Route::put('/profile', [AuthController::class, 'updateProfile']);
-        Route::post('/change-password', [AuthController::class, 'changePassword']);
+
+        // Modification du profil
+        Route::put('/profile/name', [ProfileController::class, 'updateName']);
+        Route::post('/profile/email/initiate', [ProfileController::class, 'initiateEmailChange']);
+        Route::post('/profile/email/verify', [ProfileController::class, 'verifyEmailChange']);
+        Route::post('/profile/phone/initiate', [ProfileController::class, 'initiatePhoneChange']);
+        Route::post('/profile/phone/verify', [ProfileController::class, 'verifyPhoneChange']);
+        Route::post('/change-password', [ProfileController::class, 'changePassword']);
+
+        // Suppression de compte
+        Route::delete('/account', [ProfileController::class, 'deleteAccount']);
     });
 
     // Gestion des projets
