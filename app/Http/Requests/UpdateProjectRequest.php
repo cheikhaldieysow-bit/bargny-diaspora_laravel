@@ -14,12 +14,12 @@ class UpdateProjectRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'titre' => 'sometimes|required|string|max:255',
-            'description' => 'nullable|string',
-            'problem' => 'nullable|string',
-            'objectif' => 'nullable|string',
-            'budget' => 'nullable|numeric|min:0',
-            'duration' => 'nullable|integer|min:1',
+            'titre' => 'sometimes|string|max:255',
+            'description' => 'sometimes|string',
+            'problem' => 'sometimes|string',
+            'objectif' => 'sometimes|string',
+            'budget' => 'sometimes|numeric|min:0',
+            'duration' => 'sometimes|integer|min:1',
         ];
     }
 
