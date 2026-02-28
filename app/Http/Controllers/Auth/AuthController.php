@@ -57,11 +57,22 @@ class AuthController extends Controller
     }
     // logout()
     public function logout(Request $request): JsonResponse
-    {
-        $this->authService->logout($request->user());
-    
-        return response()->json([
-            'message' => 'Déconnexion réussie'
-        ]);
-    }
+{
+    // Supprime le token actuel 
+    $request->user()->currentAccessToken()->delete();
+
+    // supprimer tous les tokens pour  déconnecter l'utilisateur sur tous les appareils
+    // $request->user()->tokens()->delete();
+
+    // Log de déconnexion pour audit (optionnel mais recommandé)
+    \Log::info('Utilisateur déconnecté', ['user_id' => $request->user()->id]);
+
+    // Réponse JSON avec headers de sécurité pour cache
+    return response()->json([
+        'message' => 'Déconnexion réussie'
+    ], 200)
+    ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
+    ->header('Pragma', 'no-cache')
+    ->header('Expires', '0');
+}
 }
