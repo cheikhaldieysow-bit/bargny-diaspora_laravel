@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 
 class MembreController extends Controller
 {
@@ -15,7 +17,9 @@ class MembreController extends Controller
         ]);
 
         $user = User::where('email', $validated['email'])
-                    ->where('role', 'membre')
+                    ->whereHas('role', function ($query) {
+                        $query->where('name', 'Member');
+                    })
                     ->first();
 
         if (!$user || !Hash::check($validated['password'], $user->password)) {
