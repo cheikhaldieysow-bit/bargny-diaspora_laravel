@@ -8,6 +8,8 @@ use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\ProjectSearchController;
 use App\Http\Controllers\ProjectSubmitController;
+//use App\Http\Controllers\Api\PasswordResetController;
+use App\Http\Controllers\MembreController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\ProjectController;
 
@@ -21,6 +23,23 @@ use App\Http\Controllers\ProjectController;
 
 /*
 |--------------------------------------------------------------------------
+| Route pour les membres (authentification spécifique)
+|--------------------------------------------------------------------------
+*/
+
+// Routes de connexion publiques
+Route::post('/membre/login', [MembreController::class, 'loginMembre']);
+
+// Routes protégées pour les membres
+Route::middleware(['auth:sanctum', 'membre'])->group(function () {
+    Route::post('/membre/logout', [MembreController::class, 'logoutMembre']);
+    Route::get('/membre/profil', [MembreController::class, 'user']);
+    Route::apiResource('membres', MembreController::class);
+});
+
+/*
+|--------------------------------------------------------------------------
+| Route de test (optionnel - à retirer en production)
 | Routes publiques (sans authentification)
 |--------------------------------------------------------------------------
 */

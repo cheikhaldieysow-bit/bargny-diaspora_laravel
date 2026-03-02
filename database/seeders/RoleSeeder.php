@@ -16,12 +16,11 @@ class RoleSeeder extends Seeder
         $roles = [
             ['name' => 'Admin'],
             ['name' => 'Owner'],
+            ['name' => 'Member'],
+            ['name' => 'Manager'],
             ['name' => 'User'],
-            ['name' => 'Guest'],
         ];
 
-
-// ... tes autres rôles
         foreach ($roles as $role) {
             Role::firstOrCreate($role);
         }
